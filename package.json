@@ -1,0 +1,20 @@
+{
+  "name": "rangemfe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "snowpack dev",
+    "build": "snowpack build"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/semver": "^7.3.9",
+    "concat-typed-array": "^2.1.0",
+    "nano-json-stream-parser": "^0.1.2",
+    "semver": "^7.3.5",
+    "snowpack": "^3.8.8"
+  }
+}

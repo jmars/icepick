@@ -1,0 +1,24 @@
+{
+  "name": "home",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "snowpack dev",
+    "build": "snowpack build"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.14.11",
+    "esinstall": "^1.1.7",
+    "memfs": "^3.4.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "snowpack": "^3.8.8"
+  }
+}

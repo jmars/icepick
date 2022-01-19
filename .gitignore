@@ -1,0 +1,4 @@
+node_modules
+home/node_modules
+home/web_modules
+static/home/bundle.js
