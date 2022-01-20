@@ -15,16 +15,12 @@ module.exports = {
       resolve: true
     }
   },
-  plugins: [
-    /* ... */
-  ],
+  plugins: [],
   packageOptions: {
     external: [],
   },
   devOptions: {
     open: "none"
   },
-  buildOptions: {
-    /* ... */
-  },
+  buildOptions: {},
 };

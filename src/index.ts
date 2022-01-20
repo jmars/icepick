@@ -17,6 +17,8 @@ declare global {
 }
 
 const vfs: Record<string, ArrayBuffer> = {}
+const bundles: Record<string, Bundle> = {}
+const packages: Record<string, Array<[string, PromiseLike<any>]>> = {}
 const decoder = new TextDecoder()
 const encoder = new TextEncoder()
 
@@ -40,6 +42,10 @@ function setOffsets(bundleLength: number, bundle: Bundle) {
 }
 
 async function getManifest(path: string): Promise<Bundle> {
+  if (bundles[path]) {
+    return bundles[path]
+  }
+
   const controller = new AbortController()
   const signal = controller.signal
   const manifest = await fetch(path, { signal }).then(res => res.body?.getReader())
@@ -74,6 +80,7 @@ async function getManifest(path: string): Promise<Bundle> {
   })
 }
 
+// TODO: handle whole response
 async function getRange(path: string, offset: number, size: number): Promise<string> {
   const buffer = vfs[path]
   const end = offset + size - 1
@@ -93,45 +100,70 @@ async function getRange(path: string, offset: number, size: number): Promise<str
   }
 }
 
-async function init() {
-  const bundle = '/home/bundle.js'
-  const manifest = await getManifest(bundle)
-
-  const { exposes, provides, internal } = manifest
-  console.log(satisfies('1.2.3', '^1.2.0'))
+async function im(path: string) {
+  const file = new URL(path, location.origin)
+  const dir = new URL(file.pathname.split('/').slice(0, -1).join('/'), location.origin)
+  const bundle = await getManifest(file.toString());
+  const { exposes, provides, internal } = bundle
 
   for (const [name, size] of Object.entries(internal)) {
-    const origin = `${location.origin}/home/${name.replace('./', '')}`
-    const offset = manifest.offsets[name]
+    const origin = new URL([dir, name].join('/'), dir).toString()
+    const offset = bundle.offsets[name]
 
     __shimport__.promises[origin] = {
-      async then(fn: (arg0: string) => void) {
-        const mod = await getRange(bundle, offset, size)
-        const transformed = __shimport__.transform(mod, origin)
-        const exp = await (new Function('return ' + transformed))();
-        __shimport__.promises[origin] = Promise.resolve(exp);
-        fn(exp)
+      async then(fn: any) {
+        const pending = new Promise(async (resolve) => {
+          const mod = await getRange(file.toString(), offset, size)
+          const transformed = __shimport__.transform(mod, origin)
+          const exp = await (new Function('return ' + transformed))();
+          resolve(exp)
+        })
+        __shimport__.promises[origin] = pending
+        return pending.then(fn)
       }
     }
   }
 
   for (const [name, meta] of Object.entries(provides)) {
-    const [_, size] = meta
-    const origin = `${location.origin}/home/${name.replace('./', '')}`
-    const offset = manifest.offsets[name]
+    const [version, size] = meta
+    const origin = new URL([dir, name].join('/'), dir).toString()
+    const offset = bundle.offsets[name]
+
+    packages[name] = packages[name] || []
+    const index = packages[name].push([version, {
+      then(fn: any) {
+        const pending = new Promise(async (resolve) => {
+          const mod = await getRange(file.toString(), offset, size)
+          const transformed = __shimport__.transform(mod, origin)
+          const exp = await (new Function('return ' + transformed))();
+          resolve(exp)
+        })
+        packages[name][index - 1] = [version, pending]
+        return pending.then(fn)
+      }
+    }])
+
+    const required = bundle.requires[name]
 
     __shimport__.promises[origin] = {
-      async then(fn: (arg0: string) => void) {
-        const mod = await getRange(bundle, offset, size)
-        const transformed = __shimport__.transform(mod, origin)
-        const exp = await (new Function('return ' + transformed))();
-        __shimport__.promises[origin] = Promise.resolve(exp);
-        fn(exp)
+      then(fn: any) {
+        for (const [version, promise] of packages[name]) {
+          if (satisfies(version, required)) {
+            __shimport__.promises[origin] = promise
+            return promise.then(fn)
+          }
+          throw new Error(`Unable to find valid module for ${name}`)
+        }
       }
     }
   }
 
   (await import(`/home/${exposes.replace('./', '')}` as string)).default()
 }
+
+async function init() {
+}
+
+im('/home/bundle.js')
 
 export default init()
