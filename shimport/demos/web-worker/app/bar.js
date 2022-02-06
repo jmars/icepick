@@ -1,1 +1,0 @@
-export const bar = `hello from ${location.origin}/web-worker/app/bar.js!`;

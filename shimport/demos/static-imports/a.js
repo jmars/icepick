@@ -1,1 +1,0 @@
-export default 'hello from <a href="./a.js">a.js</a>! this is a default export';

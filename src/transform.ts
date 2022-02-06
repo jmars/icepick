@@ -255,7 +255,7 @@ function getExportDeclaration(str: string, i: number) {
 			declarationStart,
 			specifiersEnd,
 			i,
-			source
+			source || ""
 		);
 	}
 
@@ -331,49 +331,49 @@ function find(str: string, id: string): [Range[], Range[], Range[], Range[]] {
 
 		handlers: [
 			// (
-			(i: number) => {
+			(i: number = 0) => {
 				lsci = i;
 				openingParenPositions[parenDepth++] = i;
 			},
 
 			// )
-			(i: number) => {
+			(i: number = 0) => {
 				lsci = i;
 				parenMatches[i] = openingParenPositions[--parenDepth];
 			},
 
 			// {
-			(i: number) => {
+			(i: number = 0) => {
 				lsci = i;
 				stack.push(base);
 			},
 
 			// }
-			(i: number) => {
+			(i: number = 0) => {
 				lsci = i;
 				return stack.pop();
 			},
 
 			// "
-			(i: number) => {
+			(i?: number) => {
 				stack.push(base);
 				return double_quoted;
 			},
 
 			// '
-			(i: number) => {
+			(i?: number) => {
 				stack.push(base);
 				return single_quoted;
 			},
 
 			// //
-			(i: number) => line_comment,
+			(i?: number) => line_comment,
 
 			// /*
-			(i: number) => block_comment,
+			(i?: number) => block_comment,
 
 			// /
-			(i: number) => {
+			(i: number = 0) => {
 				// could be start of regex literal OR division punctuator. Solution via
 				// http://stackoverflow.com/questions/5519596/when-parsing-javascript-what-determines-the-meaning-of-a-slash/27120110#27120110
 
@@ -399,8 +399,8 @@ function find(str: string, id: string): [Range[], Range[], Range[], Range[]] {
 
 					regexEnabled = token
 						? keywords.test(token) ||
-						  punctuators.test(token) ||
-						  (ambiguous.test(token) && !tokenClosesExpression())
+						punctuators.test(token) ||
+						(ambiguous.test(token) && !tokenClosesExpression())
 						: false;
 				} else {
 					regexEnabled = true;
@@ -410,10 +410,10 @@ function find(str: string, id: string): [Range[], Range[], Range[], Range[]] {
 			},
 
 			// `
-			(i: number) => template_string,
+			(i?: number) => template_string,
 
 			// import
-			(i: number) => {
+			(i: number = 0) => {
 				if (i === 0 || isWhitespace(str[i - 1]) || punctuatorChars.test(str[i - 1])) {
 					let j = i + 6;
 					let char;
@@ -447,7 +447,7 @@ function find(str: string, id: string): [Range[], Range[], Range[], Range[]] {
 			},
 
 			// export
-			(i: number) => {
+			(i: number = 0) => {
 				if (i === 0 || isWhitespace(str[i - 1]) || punctuatorChars.test(str[i - 1])) {
 					if (/export[\s\n{]/.test(str.slice(i, i + 7))) {
 						const d = getExportDeclaration(str, i);
@@ -458,7 +458,7 @@ function find(str: string, id: string): [Range[], Range[], Range[], Range[]] {
 			},
 
 			// ++/--
-			(i: number) => {
+			(i: number = 0) => {
 				pfixOp = (!pfixOp && str[i - 1] === '+');
 			}
 		]
@@ -469,13 +469,13 @@ function find(str: string, id: string): [Range[], Range[], Range[], Range[]] {
 
 		handlers: [
 			// [
-			(i: number) => regexEnabled ? regex_character : base,
+			(i?: number) => regexEnabled ? regex_character : base,
 
 			// \\
-			(i: number) => ((escapedFrom = regex), escaped),
+			(i?: number) => ((escapedFrom = regex), escaped),
 
 			// anything else
-			(i: number) => regexEnabled && !pfixOp ? regex : base
+			(i?: number) => regexEnabled && !pfixOp ? regex : base
 		]
 	};
 

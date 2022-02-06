@@ -1,8 +1,8 @@
 import { transform } from './transform';
 
-export const promises: Record<string, Promise<any>> = {};
+export const promises: Record<string, PromiseLike<any>> = {};
 
-type __Import = (id: string) => Promise<any>;
+type __Import = (id: string) => PromiseLike<any>;
 type __Exports = Record<string, any>;
 
 export function define(

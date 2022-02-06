@@ -1,1 +1,0 @@
-export const message = '<a href="./dynamic-import.js">this module</a> was loaded dynamically with import()';
