@@ -1,5 +1,5 @@
-import { transform } from './transform';
-import { define, load } from './load';
+import { transform } from './transform'
+import { define, load } from './load'
 import loadFederated from './federated'
 
 interface Script extends Element {
@@ -18,6 +18,12 @@ if (typeof document !== 'undefined') {
 
 const VERSION = "__VERSION__";
 
-window.__shimport__ = { transform, define, load, loadFederated, VERSION }
+const globals = { transform, define, load, loadFederated, VERSION }
+
+declare global {
+  var __shimport__: typeof globals
+}
+
+window.__shimport__ = globals
 
 export { transform, define, load, loadFederated, VERSION };

@@ -1,15 +1,15 @@
 // Snowpack Configuration File
 // See all supported options: https://www.snowpack.dev/reference/configuration
 
-/** @type {import("snowpack").SnowpackUserConfig } */
+/** @type { import("snowpack").SnowpackUserConfig } */
 module.exports = {
   mount: {
-    './static': {
+    'static': {
       static: true,
       url: '/',
       resolve: false
     },
-    './src': {
+    'src': {
       static: false,
       url: '/',
       resolve: true

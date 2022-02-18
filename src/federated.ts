@@ -1,6 +1,4 @@
 import satisfies from 'semver/functions/satisfies'
-// @ts-expect-error no types
-import concatTypedArray from "concat-typed-array"
 import { transform } from './transform'
 import { load, promises } from './load'
 
@@ -86,7 +84,15 @@ async function getManifest(path: string): Promise<Bundle> {
           try {
             const json = JSON.parse(maybeJSON)
             abort();
-            vfs[path] = concatTypedArray(Uint8Array, ...blobs).buffer
+            const buf = new Uint8Array(blobs.reduce((acc, blob) => acc + blob.byteLength, 0))
+            let i = 0
+            for (const blob of blobs) {
+              for (let j = 0; j < blob.length; j++) {
+                buf[i] = blob[j]
+                i++
+              }
+            }
+            vfs[path] = buf.buffer
             const bundleLength = encoder.encode(JSON.stringify(json, null, 2)).byteLength + 1
             setOffsets(bundleLength, json)
             return resolve(json)

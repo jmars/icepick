@@ -1,4 +1,4 @@
-import { transform } from './transform';
+import { transform } from './transform'
 
 export const promises: Record<string, PromiseLike<any>> = {};
 
